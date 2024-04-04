@@ -1,0 +1,94 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+```{r}
+# 下载训练数据和测试数据
+train_url <- "C:/Users/a/Desktop/coursera/class3/pml-training.csv"
+test_url <- "C:/Users/a/Desktop/coursera/class3/pml-testing.csv"
+
+# 加载数据
+training <- read.csv(train_url)
+testing <- read.csv(test_url)
+
+```
+
+
+```{r}
+# 新的文件路径和文件名
+new_train_url <- "C:/Users/a/Desktop/coursera/class3/pml-training-processed.csv"
+new_test_url <- "C:/Users/a/Desktop/coursera/class3/pml-testing-processed.csv"
+
+# 保存处理后的训练数据和测试数据到新的文件路径和文件名
+write.csv(training, file = new_train_url, row.names = FALSE)
+write.csv(testing, file = new_test_url, row.names = FALSE)
+
+```
+
+```{r}
+
+
+# 加载处理好的训练数据和测试数据
+train_data <- read.csv("C:/Users/a/Desktop/coursera/class3/pml-training-processed.csv", na.strings=c("NA", "#DIV/0!", ""))
+test_data <- read.csv("C:/Users/a/Desktop/coursera/class3/pml-testing-processed.csv", na.strings=c("NA", "#DIV/0!", ""))
+
+head(train_data)
+head(test_data)
+
+
+```
+
+```{r}
+trainingData <- train_data
+testingData <- test_data
+
+nRows <- nrow(trainingData)
+nRows
+
+#计算trainingData中每列缺失值的比例，并将结果存储在naPer中。
+naPer <- colSums(is.na(trainingData)) / nRows
+
+#创建一个逻辑向量，表示每列缺失值比例是否小于0.5
+lessNACols <- naPer < 0.5
+
+#从trainingData中移除缺失值比例大于等于0.5的列
+trainingData <- trainingData[,lessNACols]
+testingData <- testingData[,lessNACols]
+
+#从trainingData中移除第1到第7列的列。
+trainingData <- trainingData[,-c(1:7)]
+testingData <- testingData[,-c(1:7)]
+
+trainingData$classe = factor(trainingData$classe)
+
+library("randomForest")
+
+set.seed(42)
+fitRF <- randomForest(classe ~ ., data=train, ntree=500)
+
+predsRF <- predict(fitRF, val)
+mean(predsRF == val$classe)
+
+submission <- predict(fitRF, testingData)
+submission
+```
+
+
+
+
+
